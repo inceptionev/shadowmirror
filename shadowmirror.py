@@ -30,6 +30,15 @@ def threshold_main():
     zsock.bind('inproc://threshold')
     poller = zmq.Poller()
     poller.register(zsock, zmq.POLLIN)
+    con = Color(0,0,5)
+    coff = Color(0,0,0)
+
+    prevleds = np.array([0] * LED_COUNT)
+
+    # set all off
+    for i in range(LED_COUNT):
+        strip.setPixelColor(i, coff)
+    strip.show()
 
     j = 0
     while True:
@@ -38,31 +47,36 @@ def threshold_main():
             j+=1
             imageslice = zsock.recv_pyobj()
 
-
-            count = 320*60*3
+            count = LED_COUNT*60*3
             # image2 = np.reshape(image, count).tolist()
 
             # starting from 30'th pixel, moving foward 60 pixels at a time (to arrive on the pixel "below" it)
             # imageslice = image2[30*3:count:60*3]
 
-            con = Color(0,0,5)
-            coff = Color(0,0,0)
-
             # ledson = 0
 
-            for i in range(strip.numPixels()):
+            currentleds = np.array([0] * LED_COUNT)
+
+            for i in range(LED_COUNT):
                 if imageslice[i] > THRESHOLD:
-                    # ledson += 1
-                    strip.setPixelColor(320-i, con)
-                else:
-                    strip.setPixelColor(320-i, coff)
+                    currentleds[i] = 1
+                #     strip.setPixelColor(LED_COUNT-i, con)
+                # else:
+                #     strip.setPixelColor(LED_COUNT-i, coff)
 
-            # for p in strip:
-            #     if p > THRESHOLD:
-            # bits = [Color(0,0,255) if p > THRESHOLD else Color(0,0,0) for p in strip]
+            diffs = currentleds - prevleds
+
+            diffs = diffs.tolist()
+
+            for i in range(LED_COUNT):
+                if diffs[i] == 1:
+                    strip.setPixelColor(LED_COUNT-i, con)
+                elif diffs[i] == -1:
+                    strip.setPixelColor(LED_COUNT-i, coff)
+
+            prevleds = np.array(currentleds)
+
             strip.show()
-
-            # print "updated strip with %d leds lit" % ledson
 
             if( j == LOOP ):
                 print('Average: %.2f FPS' % (LOOP/(time.time()-starttime)))
@@ -117,7 +131,7 @@ LED_INVERT     = False   # True to invert the signal (when using NPN transistor 
 
 #settings
 THRESHOLD = 190
-LOOP = 2000
+LOOP = 200
 # Create NeoPixel object with appropriate configuration.
 strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
 # Intialize the library (must be called once before other functions).
