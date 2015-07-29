@@ -45,7 +45,7 @@ def threshold_main():
         socks = dict(poller.poll(0))
         if zsock in socks and socks[zsock] == zmq.POLLIN:
             j+=1
-            imageslice = zsock.recv_pyobj()
+            imageslice = zsock.recv()
 
             count = LED_COUNT*60*3
             # image2 = np.reshape(image, count).tolist()
@@ -58,7 +58,7 @@ def threshold_main():
             currentleds = np.array([0] * LED_COUNT)
 
             for i in range(LED_COUNT):
-                if imageslice[i] > THRESHOLD:
+                if ord(imageslice[i]) > THRESHOLD:
                     currentleds[i] = 1
                 #     strip.setPixelColor(LED_COUNT-i, con)
                 # else:
@@ -110,8 +110,8 @@ def transfer():
 
 
         # print type(imageslice)
-
-        zsock.send_pyobj(imageslice)
+        zsock.send(bytearray(imageslice))
+        # zsock.send_pyobj(imageslice)
 
         #pickle.dump(image, open( "frame.p", "wb" ))
         #print 'done'
