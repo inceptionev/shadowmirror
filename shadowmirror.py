@@ -9,6 +9,7 @@ from neopixel import *
 from fractions import Fraction
 import cv2
 #from PIL import Image
+import pickle
 
 def transfer():
     stream = picamera.array.PiRGBArray(camera)
@@ -20,6 +21,12 @@ def transfer():
         #image = cv2.imdecode(data,1)
         #image = Image.open(stream)
         image=stream.array
+
+        #pickle.dump(image, open( "frame.p", "wb" ))
+        #print 'done'
+        #while(1):
+        #    pass
+
         #strip._led_data = image[:][30][1]
 	#print(image[1][1])
         for i in range(strip.numPixels()):
