@@ -13,7 +13,7 @@ import cv2
 def transfer():
     stream = picamera.array.PiRGBArray(camera)
     #stream=io.BytesIO()
-    for k in range(LOOP):
+    while True:
         yield stream
         stream.seek(0)
         #data = np.fromstring(stream.getvalue(), dtype=np.uint8)
@@ -24,9 +24,9 @@ def transfer():
 	#print(image[1][1])
         for i in range(strip.numPixels()):
             if image[i][30][1] > THRESHOLD:
-                strip.setPixelColor(i, Color(0,0,255))
+                strip.setPixelColor(320-i, Color(0,0,255))
             else:
-                strip.setPixelColor(i, Color(0,0,0))
+                strip.setPixelColor(320-i, Color(0,0,0))
         strip.show()
         stream.seek(0)
         stream.truncate()
@@ -41,7 +41,7 @@ LED_INVERT     = False   # True to invert the signal (when using NPN transistor 
 
 #settings
 THRESHOLD = 190
-LOOP = 200
+LOOP = 2000
 # Create NeoPixel object with appropriate configuration.
 strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
 # Intialize the library (must be called once before other functions).
