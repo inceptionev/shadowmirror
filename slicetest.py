@@ -48,7 +48,14 @@ def ben(image):
     con = Color(0,0,255)
     coff = Color(0,0,0)
 
+
+    print type(imageslice)
+    print type(imageslice[0])
+
     imageslice = bytearray(imageslice)
+
+    print type(imageslice)
+    print type(imageslice[0])
 
 
     for i in range(320):
@@ -76,6 +83,8 @@ def ben(image):
 # edwin(imageorig)
 # print leds
 ben(imageorig)
+
+
 
 
 

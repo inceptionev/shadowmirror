@@ -22,23 +22,33 @@ def print_hex(str):
 
 
 def threshold_main():
-
+    starttime = time.time()
     print 'threshold_main starting'
     zmq_context = zmq.Context.instance()
+
+    # zmq camera->threshold
     zsock = zmq_context.socket(zmq.SUB)
     zsock.setsockopt(zmq.SUBSCRIBE, '') # empty string here subscribes to all channels
     zsock.bind('inproc://threshold')
     poller = zmq.Poller()
     poller.register(zsock, zmq.POLLIN)
+
+    # zmq threshold -> show
+    # zsock2 = zmq_context.socket(zmq.PUB)
+    # zsock2.connect('inproc://show')
+    zsock2 = zmq_context.socket(zmq.PUB)
+    zsock2.bind('tcp://*:%d' % 6000)
+
+
     con = Color(0,0,5)
     coff = Color(0,0,0)
 
-    prevleds = np.array([0] * LED_COUNT)
+    prevleds = [0] * LED_COUNT
 
     # set all off
-    for i in range(LED_COUNT):
-        strip.setPixelColor(i, coff)
-    strip.show()
+    # for i in range(LED_COUNT):
+    #     strip.setPixelColor(i, coff)
+    # strip.show()
 
     j = 0
     while True:
@@ -48,39 +58,19 @@ def threshold_main():
             imageslice = zsock.recv()
 
             count = LED_COUNT*60*3
-            # image2 = np.reshape(image, count).tolist()
 
-            # starting from 30'th pixel, moving foward 60 pixels at a time (to arrive on the pixel "below" it)
-            # imageslice = image2[30*3:count:60*3]
-
-            # ledson = 0
-
-            currentleds = np.array([0] * LED_COUNT)
+            currentleds = [0] * LED_COUNT
 
             for i in range(LED_COUNT):
                 if ord(imageslice[i]) > THRESHOLD:
                     currentleds[i] = 1
-                #     strip.setPixelColor(LED_COUNT-i, con)
-                # else:
-                #     strip.setPixelColor(LED_COUNT-i, coff)
 
-            diffs = currentleds - prevleds
+            # this is the same as strip.show()
+            zsock2.send_pyobj(currentleds)
 
-            diffs = diffs.tolist()
-
-            for i in range(LED_COUNT):
-                if diffs[i] == 1:
-                    strip.setPixelColor(LED_COUNT-i, con)
-                elif diffs[i] == -1:
-                    strip.setPixelColor(LED_COUNT-i, coff)
-
-            prevleds = np.array(currentleds)
-
-            strip.show()
-
-            if( j == LOOP ):
-                print('Average: %.2f FPS' % (LOOP/(time.time()-starttime)))
-
+            if( j % LOOP == (LOOP-1) ):
+                print('Camera Average: %.2f FPS' % (LOOP/(time.time()-starttime)))
+                starttime = time.time()
 
 
 def transfer():
@@ -133,9 +123,9 @@ LED_INVERT     = False   # True to invert the signal (when using NPN transistor 
 THRESHOLD = 190
 LOOP = 200
 # Create NeoPixel object with appropriate configuration.
-strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
+# strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
 # Intialize the library (must be called once before other functions).
-strip.begin()
+# strip.begin()
 
 #create and configure camera
 camera=picamera.PiCamera(sensor_mode=7)
@@ -156,13 +146,15 @@ camera.awb_gains = g
 # launch first thread
 threshold_thread = threading.Thread(target=threshold_main)
 threshold_thread.start()
+# threshold_thread = threading.Thread(target=show_main)
+# threshold_thread.start()
 print 'sleeping for threads'
-time.sleep(1) # sleep so threads can run first
+time.sleep(0.1) # sleep so threads can run first
 
-starttime = time.time()
+# starttime = time.time()
 camera.capture_sequence(transfer(), 'rgb', use_video_port=True)
 #print('Captured %dx%d image' % (stream.array.shape[1], stream.array.shape[0]))
-print('Average: %.2f FPS' % (LOOP/(time.time()-starttime)))    
+# print('Average: %.2f FPS' % (LOOP/(time.time()-starttime)))
 
 camera.stop_preview()
 camera.close()
