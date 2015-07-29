@@ -43,10 +43,22 @@ def ben(image):
     image2 = np.reshape(image, count).tolist()
 
     # starting from 30'th pixel, moving foward 60 pixels at a time (to arrive on the pixel "below" it)
-    strip = image2[30*3:count:60*3]
+    imageslice = image2[30*3:count:60*3]
 
     con = Color(0,0,255)
     coff = Color(0,0,0)
+
+    imageslice = bytearray(imageslice)
+
+
+    for i in range(320):
+        if imageslice[i] > THRESHOLD:
+            # ledson += 1
+           print "p %d on" % i
+            # strip.setPixelColor(320-i, con)
+        else:
+            print "p %d off" % i
+            # strip.setPixelColor(320-i, coff)
 
     #bits = [con if p > THRESHOLD else coff for p in strip]
 
@@ -59,11 +71,11 @@ def ben(image):
 
 
 # print timeit.timeit('edwin(imageorig)', "from __main__ import edwin, imageorig", number=100)
-print timeit.timeit('ben(imageorig)', "from __main__ import ben, imageorig", number=100)
+# print timeit.timeit('ben(imageorig)', "from __main__ import ben, imageorig", number=100)
 
 # edwin(imageorig)
 # print leds
-#ben(imageorig)
+ben(imageorig)
 
 
 

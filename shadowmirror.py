@@ -14,6 +14,13 @@ import zmq
 import threading
 
 
+def print_hex(str):
+    print 'hex:'
+    for b in str:
+        print ' ', format(ord(b), '02x')
+
+
+
 def threshold_main():
 
     print 'threshold_main starting'
@@ -29,16 +36,16 @@ def threshold_main():
         socks = dict(poller.poll(0))
         if zsock in socks and socks[zsock] == zmq.POLLIN:
             j+=1
-            image = zsock.recv_pyobj()
+            imageslice = zsock.recv_pyobj()
+
 
             count = 320*60*3
-
-            image2 = np.reshape(image, count).tolist()
+            # image2 = np.reshape(image, count).tolist()
 
             # starting from 30'th pixel, moving foward 60 pixels at a time (to arrive on the pixel "below" it)
-            imageslice = image2[30*3:count:60*3]
+            # imageslice = image2[30*3:count:60*3]
 
-            con = Color(0,0,255)
+            con = Color(0,0,5)
             coff = Color(0,0,0)
 
             # ledson = 0
@@ -57,7 +64,7 @@ def threshold_main():
 
             # print "updated strip with %d leds lit" % ledson
 
-            if( j == LOOP):
+            if( j == LOOP ):
                 print('Average: %.2f FPS' % (LOOP/(time.time()-starttime)))
 
 
@@ -76,7 +83,21 @@ def transfer():
         #image = cv2.imdecode(data,1)
         #image = Image.open(stream)
         image=stream.array
-        zsock.send_pyobj(image)
+
+        count = 320*60*3
+        image2 = np.reshape(image, count).tolist()
+        imageslice = image2[30*3:count:60*3]
+
+        # print "----"
+        # print imageslice
+        # bytes = bytearray(imageslice)
+        # print_hex(bytes)
+        # print "\n\n"
+
+
+        # print type(imageslice)
+
+        zsock.send_pyobj(imageslice)
 
         #pickle.dump(image, open( "frame.p", "wb" ))
         #print 'done'
