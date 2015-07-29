@@ -40,12 +40,15 @@ def ben(image):
 
     count = 320*60*3
 
-    image2 = np.reshape(image, count)
+    image2 = np.reshape(image, count).tolist()
 
     # starting from 30'th pixel, moving foward 60 pixels at a time (to arrive on the pixel "below" it)
     strip = image2[30*3:count:60*3]
 
-    bits = [Color(0,0,255) if p > THRESHOLD else Color(0,0,0) for p in strip]
+    con = Color(0,0,255)
+    coff = Color(0,0,0)
+
+    #bits = [con if p > THRESHOLD else coff for p in strip]
 
     #print bits
 
